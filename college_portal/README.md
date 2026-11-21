@@ -135,20 +135,6 @@ college_portal/
   README.md
 ```
 
-## Cloudflare deployment status
-
-The existing application uses Flask-SQLAlchemy and a local SQLite file. Cloudflare Workers do not support that SQLite file, and SQLAlchemy does not have a confirmed D1 dialect.
-
-A Cloudflare deployment requires a separate D1 port:
-
-- replace SQLAlchemy models and queries with D1 SQL statements
-- replace the Flask session/database initialization with a Python WSGI or TypeScript entrypoint
-- keep Jinja templates, or move them behind JSON API routes
-- add a D1 binding named `DB`
-- apply `cloudflare/schema.sql` to D1
-
-Files in `cloudflare/` provide the deployment starting point. The existing Render/Railway deployment remains the simplest option until the D1 port is completed.
-
 ## A few implementation notes
 
 - Passwords are hashed with Werkzeug's `generate_password_hash` — never
