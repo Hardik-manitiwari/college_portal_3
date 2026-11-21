@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Homework — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}" class="active">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Homework & assignments</h1>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>Post new</h2>
+      <form method="POST">
+        <div class="form-row">
+          <label>Subject</label>
+          <select name="subject_id" required>
+            {% for s in subjects %}
+              <option value="{{ s.id }}">{{ s.name }} — {{ s.school_class.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Title</label>
+          <input type="text" name="title" required>
+        </div>
+        <div class="form-row">
+          <label>Description</label>
+          <textarea name="description" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Due date</label>
+          <input type="date" name="due_date" required>
+        </div>
+        <button type="submit" class="btn">Post homework</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recently posted</h2>
+      {% if posted %}
+        {% for hw in posted %}
+          <div class="hw-item">
+            <div>
+              <div class="title">{{ hw.title }}</div>
+              <div class="meta">{{ hw.subject.name }} &middot; due {{ hw.due_date.strftime('%d %b') }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nothing posted yet.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

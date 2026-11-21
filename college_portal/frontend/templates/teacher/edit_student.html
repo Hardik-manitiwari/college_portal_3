@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Edit student{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Edit student</h1>
+
+  <div class="card form-narrow">
+    <form method="POST">
+      <div class="form-row">
+        <label>Full name</label>
+        <input type="text" name="name" value="{{ student.name }}" required>
+      </div>
+      <div class="form-row">
+        <label>Roll number</label>
+        <input type="text" name="roll_number" value="{{ student.roll_number }}" required>
+      </div>
+      <div class="form-row">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ student.email }}" required>
+      </div>
+      <div class="form-row">
+        <label>Parent/guardian name</label>
+        <input type="text" name="parent_name" value="{{ student.parent_name or '' }}" placeholder="For WhatsApp message signatures">
+      </div>
+      <div class="form-row">
+        <label>Parent WhatsApp number (with country code, digits only)</label>
+        <input type="text" name="parent_phone" value="{{ student.parent_phone or '' }}" placeholder="e.g. 919812345678">
+      </div>
+      <button type="submit" class="btn">Save changes</button>
+      <a href="{{ url_for('teacher_students', class_id=student.class_id) }}" class="btn secondary">Cancel</a>
+    </form>
+  </div>
+{% endblock %}

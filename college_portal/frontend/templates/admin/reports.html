@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Reports — Admin{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('admin_dashboard') }}">Overview</a>
+  <a href="{{ url_for('admin_users') }}">Users</a>
+  <a href="{{ url_for('admin_classes') }}">Classes</a>
+  <a href="{{ url_for('admin_reports') }}" class="active">Reports</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Attendance reports</h1>
+  <p class="subtitle">Full breakdown, every class.</p>
+
+  {% for c in classes %}
+    <div class="card">
+      <h2>{{ c.name }}</h2>
+      {% set rows = data[c.id] %}
+      {% if rows %}
+      <table>
+        <thead><tr><th>Roll no.</th><th>Name</th><th>Held</th><th>Attended</th><th>%</th></tr></thead>
+        <tbody>
+          {% for r in rows|sort(attribute='pct') %}
+          <tr>
+            <td>{{ r.student.roll_number }}</td>
+            <td>{{ r.student.name }}</td>
+            <td>{{ r.held }}</td>
+            <td>{{ r.present }}</td>
+            <td>
+              {% if r.pct is not none %}
+                <span class="pill {% if r.pct < threshold %}bad{% elif r.pct < threshold + 10 %}warn{% else %}good{% endif %}">{{ r.pct }}%</span>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="empty">No students in this class yet.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endblock %}

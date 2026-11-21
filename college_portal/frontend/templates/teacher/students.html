@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ school_class.name }} — Students{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>{{ school_class.name }}</h1>
+  <p class="subtitle">{{ school_class.students|length }} students enrolled</p>
+
+  <div style="margin-bottom:16px">
+    <a href="{{ url_for('teacher_add_student', class_id=school_class.id) }}" class="btn">Add student</a>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Roll no.</th><th>Name</th><th>Email</th><th>Parent contact</th><th></th></tr></thead>
+      <tbody>
+        {% for s in school_class.students|sort(attribute='roll_number') %}
+        <tr>
+          <td>{{ s.roll_number }}</td>
+          <td>{{ s.name }}</td>
+          <td>{{ s.email }}</td>
+          <td>
+            {% if s.parent_phone %}
+              {{ s.parent_name or '—' }}<div style="font-size:12px;color:var(--ink-faint)">+{{ s.parent_phone }}</div>
+            {% else %}
+              <span class="pill neutral">not on file</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('teacher_edit_student', student_id=s.id) }}" class="btn small secondary">Edit</a>
+            <form method="POST" action="{{ url_for('teacher_delete_student', student_id=s.id) }}" style="display:inline"
+                  onsubmit="return confirm('Remove {{ s.name }} from the class? This also clears their attendance history.');">
+              <button type="submit" class="btn small danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5"><p class="empty">No students yet — add the first one.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

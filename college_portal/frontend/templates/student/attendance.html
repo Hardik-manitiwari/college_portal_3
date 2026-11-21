@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Attendance — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('student_homework') }}">Homework</a>
+  <a href="{{ url_for('student_attendance') }}" class="active">Attendance</a>
+  <a href="{{ url_for('student_scan') }}">Scan attendance</a>
+  <a href="{{ url_for('student_profile') }}">My ID / profile</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Your attendance</h1>
+  <p class="subtitle">{{ threshold }}% is the minimum required to sit for end-semester exams.</p>
+
+  <div class="card">
+    <h2>By subject</h2>
+    <table>
+      <thead><tr><th>Subject</th><th>Held</th><th>Attended</th><th>%</th></tr></thead>
+      <tbody>
+        {% for row in breakdown %}
+        <tr>
+          <td>{{ row.subject }}</td>
+          <td>{{ row.held }}</td>
+          <td>{{ row.present }}</td>
+          <td>
+            {% if row.pct is not none %}
+              <span class="pill {% if row.pct < threshold %}bad{% elif row.pct < threshold + 10 %}warn{% else %}good{% endif %}">{{ row.pct }}%</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Recent scans</h2>
+    {% if records %}
+      <table>
+        <thead><tr><th>Date</th><th>Subject</th><th>Marked via</th></tr></thead>
+        <tbody>
+          {% for r in records %}
+          <tr>
+            <td>{{ r.timestamp.strftime('%d %b, %I:%M %p') }}</td>
+            <td>{{ r.session.subject.name }}</td>
+            <td>
+              {% if r.marked_via == 'qr' %}<span class="pill good">self-scanned</span>
+              {% elif r.marked_via == 'failsafe' %}<span class="pill warn">teacher failsafe</span>
+              {% else %}<span class="pill neutral">manual</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No attendance recorded yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

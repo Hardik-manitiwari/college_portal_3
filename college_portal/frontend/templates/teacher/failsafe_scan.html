@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Failsafe scan — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}" class="active">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <h1>Failsafe scan</h1>
+  <p class="subtitle">For students whose own camera or QR won't scan — scan their ID card, or type their roll number.</p>
+
+  {% if not open_sessions %}
+    <div class="card">
+      <p class="empty">No open session right now. <a href="{{ url_for('teacher_generate_qr') }}">Start one first</a>, then come back here.</p>
+    </div>
+  {% else %}
+    <div class="card" style="max-width:460px">
+      <div class="form-row">
+        <label>Which session is this for?</label>
+        <select id="session-select">
+          {% for s in open_sessions %}
+            <option value="{{ s.id }}">{{ s.subject.name }} — {{ s.subject.school_class.name }} ({{ s.created_at.strftime('%I:%M %p') }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Scan their ID QR</h2>
+        <div id="scanner-region"></div>
+        <div style="margin-top:14px;text-align:center">
+          <button class="btn secondary small" onclick="restart()">Restart camera</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Or enter roll number manually</h2>
+        <div class="form-row">
+          <input type="text" id="roll-input" placeholder="e.g. CS2A003">
+        </div>
+        <button class="btn" onclick="submitRoll()">Mark present</button>
+        <div id="result" class="scan-result" style="margin-top:16px"></div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+    <script>
+      const resultEl = document.getElementById('result');
+
+      function showResult(ok, message) {
+        resultEl.textContent = message;
+        resultEl.className = 'scan-result show ' + (ok ? 'ok' : 'err');
+      }
+
+      function submitPayload(body) {
+        const sessionId = document.getElementById('session-select').value;
+        fetch("{{ url_for('teacher_failsafe_submit') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, ...body })
+        })
+        .then(r => r.json())
+        .then(data => showResult(data.ok, data.message))
+        .catch(() => showResult(false, "Couldn't reach the server."));
+      }
+
+      function onDecoded(text) { submitPayload({ qr_value: text }); }
+
+      function submitRoll() {
+        const val = document.getElementById('roll-input').value.trim();
+        if (!val) return;
+        submitPayload({ roll_number: val });
+        document.getElementById('roll-input').value = '';
+      }
+
+      document.getElementById('roll-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitRoll();
+      });
+
+      function restart() {
+        stopScanner();
+        setTimeout(() => startScanner('scanner-region', onDecoded, (err) => showResult(false, err)), 300);
+      }
+
+      startScanner('scanner-region', onDecoded, (err) => showResult(false, err));
+    </script>
+  {% endif %}
+{% endblock %}

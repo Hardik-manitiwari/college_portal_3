@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ school_class.name }} — Report{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>{{ school_class.name }}</h1>
+  <p class="subtitle">Attendance report, combined across all subjects · {{ rows|length }} students</p>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Roll no.</th><th>Name</th><th>Sessions held</th><th>Attended</th><th>%</th></tr></thead>
+      <tbody>
+        {% for r in rows|sort(attribute='pct') %}
+        <tr>
+          <td>{{ r.student.roll_number }}</td>
+          <td>{{ r.student.name }}</td>
+          <td>{{ r.held }}</td>
+          <td>{{ r.present }}</td>
+          <td>
+            {% if r.pct is not none %}
+              <span class="pill {% if r.pct < threshold %}bad{% elif r.pct < threshold + 10 %}warn{% else %}good{% endif %}">{{ r.pct }}%</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="max-width:520px">
+    <h2>Post an announcement to this class</h2>
+    <form method="POST" action="{{ url_for('teacher_announce') }}">
+      <input type="hidden" name="class_id" value="{{ school_class.id }}">
+      <div class="form-row">
+        <textarea name="message" rows="3" placeholder="e.g. Submission deadline extended to Monday" required></textarea>
+      </div>
+      <button type="submit" class="btn">Post</button>
+    </form>
+  </div>
+{% endblock %}

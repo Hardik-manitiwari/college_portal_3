@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('student_dashboard') }}" class="active">Dashboard</a>
+  <a href="{{ url_for('student_homework') }}">Homework</a>
+  <a href="{{ url_for('student_attendance') }}">Attendance</a>
+  <a href="{{ url_for('student_scan') }}">Scan attendance</a>
+  <a href="{{ url_for('student_profile') }}">My ID / profile</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Hey {{ user.name.split(' ')[0] }}</h1>
+  <p class="subtitle">Here's where things stand today.</p>
+
+  <div class="card-row">
+    <div class="card">
+      <div class="stat">
+        <div class="icon">&#9673;</div>
+        <div class="num">
+          {% if overall_pct is not none %}{{ overall_pct }}%{% else %}—{% endif %}
+        </div>
+        <div class="label">Overall attendance</div>
+      </div>
+      {% if overall_pct is not none %}
+        <div class="progress {% if overall_pct < threshold %}bad{% elif overall_pct < threshold + 10 %}warn{% endif %}" style="margin-top:10px">
+          <div style="width: {{ overall_pct }}%"></div>
+        </div>
+        {% if overall_pct < threshold %}
+          <p style="font-size:13px;color:var(--bad);margin:8px 0 0">Below the {{ threshold }}% requirement — try to attend the next few classes.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="card">
+      <div class="stat">
+        <div class="icon">H</div>
+        <div class="num">{{ upcoming_hw|length }}</div>
+        <div class="label">Assignments due soon</div>
+      </div>
+    </div>
+    <div class="card">
+      <a href="{{ url_for('student_scan') }}" class="btn" style="width:100%;text-align:center">Scan for attendance</a>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 0">Can't scan? Show your ID QR from the profile tab to your teacher instead.</p>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>Upcoming assignments</h2>
+      {% if upcoming_hw %}
+        {% for hw in upcoming_hw %}
+          <div class="hw-item">
+            <div>
+              <div class="title">{{ hw.title }}</div>
+              <div class="meta">{{ hw.subject.name }} &middot; due {{ hw.due_date.strftime('%d %b') }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nothing due right now — you're caught up.</p>
+      {% endif %}
+      <a href="{{ url_for('student_homework') }}" style="font-size:13.5px">View all homework →</a>
+    </div>
+
+    <div class="card">
+      <h2>Announcements</h2>
+      {% if announcements %}
+        {% for a in announcements %}
+          <div class="announcement">
+            {{ a.message }}
+            <div class="when">{{ a.posted_at.strftime('%d %b, %I:%M %p') }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">No announcements yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Attendance by subject</h2>
+    {% if breakdown %}
+    <table>
+      <thead><tr><th>Subject</th><th>Held</th><th>Attended</th><th>%</th></tr></thead>
+      <tbody>
+        {% for row in breakdown %}
+        <tr>
+          <td>{{ row.subject }}</td>
+          <td>{{ row.held }}</td>
+          <td>{{ row.present }}</td>
+          <td>
+            {% if row.pct is not none %}
+              <span class="pill {% if row.pct < threshold %}bad{% elif row.pct < threshold + 10 %}warn{% else %}good{% endif %}">{{ row.pct }}%</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="empty">No sessions recorded yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

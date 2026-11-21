@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Generate QR — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}" class="active">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Take attendance</h1>
+  <p class="subtitle">Generate a QR for the class in front of you — it expires after {{ qr_minutes }} minutes.</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>Start a new session</h2>
+      <form method="POST">
+        <div class="form-row">
+          <label>Subject</label>
+          <select name="subject_id" required>
+            {% for s in subjects %}
+              <option value="{{ s.id }}">{{ s.name }} — {{ s.school_class.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn">Generate QR</button>
+      </form>
+    </div>
+
+    <div class="card">
+      {% if active_session and qr_image %}
+        <h2>{{ active_session.subject.name }}</h2>
+        <p class="subtitle" style="margin-bottom:12px">{{ active_session.subject.school_class.name }}</p>
+        <div class="qr-box">
+          <img id="qr-img" src="{{ qr_image }}" alt="Attendance QR code">
+        </div>
+        <p id="rotate-note" style="font-size:12.5px;color:var(--ink-faint);margin-top:10px;text-align:center">
+          Refreshes in <span id="rotate-seconds">{{ rotate_seconds }}</span>s — a photo of this screen stops working almost immediately.
+        </p>
+        <p id="timer-note" style="font-size:13px;color:var(--ink-soft);margin-top:8px">Live &middot; <span id="live-count">0</span> / {{ active_session.subject.school_class.students|length }} marked present</p>
+        <form method="POST" action="{{ url_for('teacher_close_session', session_id=active_session.id) }}" style="margin-top:10px">
+          <button type="submit" class="btn secondary small">Close this session</button>
+        </form>
+        <script>
+          function poll() {
+            fetch("{{ url_for('teacher_session_live_count', session_id=active_session.id) }}")
+              .then(r => r.json())
+              .then(data => {
+                if (!data.ok) return;
+                document.getElementById('live-count').textContent = data.count;
+                if (data.expired) {
+                  document.getElementById('timer-note').innerHTML = 'This QR has expired — generate a new one for latecomers.';
+                  document.getElementById('rotate-note').style.display = 'none';
+                  return;
+                }
+                if (data.qr_image) {
+                  document.getElementById('qr-img').src = data.qr_image;
+                }
+                if (typeof data.seconds_left === 'number') {
+                  document.getElementById('rotate-seconds').textContent = data.seconds_left;
+                }
+              });
+          }
+          poll();
+          setInterval(poll, 3000);
+        </script>
+      {% else %}
+        <p class="empty">Pick a subject and generate a QR to display it here.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

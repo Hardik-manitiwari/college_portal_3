@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Homework — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('student_homework') }}" class="active">Homework</a>
+  <a href="{{ url_for('student_attendance') }}">Attendance</a>
+  <a href="{{ url_for('student_scan') }}">Scan attendance</a>
+  <a href="{{ url_for('student_profile') }}">My ID / profile</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Homework & assignments</h1>
+  <p class="subtitle">Everything posted across your subjects, earliest due date first.</p>
+
+  <div class="card">
+    {% if items %}
+      {% for hw in items %}
+        <div class="hw-item">
+          <button class="checkbox {% if statuses.get(hw.id) %}done{% endif %}"
+                  onclick="document.getElementById('toggle-{{ hw.id }}').submit()" title="Mark as done"></button>
+          <form id="toggle-{{ hw.id }}" action="{{ url_for('toggle_homework', hw_id=hw.id) }}" method="POST" style="display:none"></form>
+          <div style="flex:1">
+            <div class="title">{{ hw.title }}</div>
+            <div class="meta">
+              {{ hw.subject.name }} &middot;
+              due {{ hw.due_date.strftime('%d %b %Y') }}
+              {% if hw.due_date < today %}
+                <span class="pill {% if statuses.get(hw.id) %}good{% else %}bad{% endif %}">
+                  {{ 'submitted' if statuses.get(hw.id) else 'overdue' }}
+                </span>
+              {% elif statuses.get(hw.id) %}
+                <span class="pill good">done</span>
+              {% endif %}
+            </div>
+            {% if hw.description %}<div class="desc">{{ hw.description }}</div>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">No homework has been posted yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Message parents — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}" class="active">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Message parents</h1>
+  <p class="subtitle">One-tap WhatsApp messages, pre-written from each student's attendance and homework record.</p>
+
+  {% if not coordinated %}
+    <div class="card"><p class="empty">You don't coordinate a class, so there's no parent list to show here.</p></div>
+  {% else %}
+
+  {% if coordinated|length > 1 %}
+    <div class="tag-strip">
+      {% for c in coordinated %}
+        <a href="{{ url_for('teacher_message_parents', class_id=c.id) }}" class="{{ 'active' if school_class.id == c.id }}">{{ c.name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>{{ school_class.name }} &middot; parent contacts</h2>
+    <table>
+      <thead><tr><th>Student</th><th>Parent</th><th>Attendance</th><th>Homework</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>
+            {{ r.student.name }}
+            <div style="font-size:12px;color:var(--ink-faint)">{{ r.student.roll_number }}</div>
+          </td>
+          <td>
+            {% if r.has_phone %}
+              {{ r.student.parent_name or '—' }}
+              <div style="font-size:12px;color:var(--ink-faint)">+{{ r.student.parent_phone }}</div>
+            {% else %}
+              <span class="pill neutral">no number on file</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.pct is not none %}
+              <span class="pill {% if r.low_attendance %}bad{% elif r.pct < threshold + 10 %}warn{% else %}good{% endif %}">{{ r.pct }}%</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if r.pending_count > 0 %}
+              <span class="pill warn">{{ r.pending_count }} pending</span>
+            {% else %}
+              <span class="pill good">up to date</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap">
+            {% if r.has_phone %}
+              <a class="btn small secondary wa-send"
+                 data-student-id="{{ r.student.id }}" data-category="attendance"
+                 data-message="{{ r.attendance_link.split('?text=')[1] }}"
+                 href="{{ r.attendance_link }}" target="_blank" rel="noopener">Attendance</a>
+              <a class="btn small secondary wa-send"
+                 data-student-id="{{ r.student.id }}" data-category="homework"
+                 data-message="{{ r.homework_link.split('?text=')[1] }}"
+                 href="{{ r.homework_link }}" target="_blank" rel="noopener">Homework</a>
+            {% else %}
+              <span style="font-size:12.5px;color:var(--ink-faint)">add parent phone to enable</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>Broadcast a custom message</h2>
+      <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-6px;margin-bottom:14px">
+        Sent to every parent with a number on file for this class. Opens one WhatsApp tab per parent — your college
+        signature is added automatically.
+      </p>
+      <form method="POST" action="{{ url_for('teacher_message_parents_custom') }}">
+        <input type="hidden" name="class_id" value="{{ school_class.id }}">
+        <div class="form-row">
+          <textarea name="message" rows="3" placeholder="e.g. Tomorrow's class is moved to Lab 2, 10 AM." required></textarea>
+        </div>
+        <button type="submit" class="btn">Prepare broadcast</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recently sent</h2>
+      {% if recent %}
+        {% for log in recent %}
+          <div class="announcement" style="background:var(--bg);border-left-color:var(--accent)">
+            <strong>{{ log.student.name }}</strong> &middot; <span class="pill neutral">{{ log.category }}</span>
+            <div class="when">{{ log.sent_at.strftime('%d %b, %I:%M %p') }} by {{ log.teacher.name }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nothing sent yet from this page.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    // Logs the message to the server (for the "Recently sent" history) the moment
+    // a teacher taps a WhatsApp button, just before the wa.me tab opens.
+    document.querySelectorAll('.wa-send').forEach(function(el){
+      el.addEventListener('click', function(){
+        fetch("{{ url_for('teacher_message_parents_log') }}", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            student_id: el.dataset.studentId,
+            category: el.dataset.category,
+            message: decodeURIComponent(el.dataset.message)
+          })
+        }).catch(function(){ /* logging is best-effort, never block the send */ });
+      });
+    });
+  </script>
+{% endblock %}

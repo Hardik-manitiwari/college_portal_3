@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Admin — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('admin_dashboard') }}" class="active">Overview</a>
+  <a href="{{ url_for('admin_users') }}">Users</a>
+  <a href="{{ url_for('admin_classes') }}">Classes</a>
+  <a href="{{ url_for('admin_reports') }}">Reports</a>
+{% endblock %}
+
+{% block content %}
+  <h1>College overview</h1>
+  <p class="subtitle">A birds-eye view of everything happening on the portal.</p>
+
+  <div class="card-row">
+    <div class="card"><div class="stat"><div class="icon">S</div><div class="num">{{ total_students }}</div><div class="label">Students</div></div></div>
+    <div class="card"><div class="stat"><div class="icon">T</div><div class="num">{{ total_teachers }}</div><div class="label">Teachers</div></div></div>
+    <div class="card"><div class="stat"><div class="icon">C</div><div class="num">{{ total_classes }}</div><div class="label">Classes</div></div></div>
+    <div class="card"><div class="stat"><div class="icon">&#9673;</div><div class="num">{{ total_sessions_today }}</div><div class="label">Sessions today</div></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Classes at a glance</h2>
+    <table>
+      <thead><tr><th>Class</th><th>Coordinator</th><th>Students</th><th>Avg attendance</th></tr></thead>
+      <tbody>
+        {% for row in class_rows %}
+        <tr>
+          <td>{{ row.school_class.name }}</td>
+          <td>{{ row.school_class.coordinator.name if row.school_class.coordinator else '—' }}</td>
+          <td>{{ row.student_count }}</td>
+          <td>
+            {% if row.avg_pct is not none %}
+              <span class="pill {% if row.avg_pct < 75 %}bad{% elif row.avg_pct < 85 %}warn{% else %}good{% endif %}">{{ row.avg_pct }}%</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

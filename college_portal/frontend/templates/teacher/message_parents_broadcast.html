@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Broadcast — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}" class="active">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Send to {{ school_class.name }} parents</h1>
+  <p class="subtitle">{{ links|length }} parent(s) have a number on file. Tap each button to open WhatsApp with the message ready to send.</p>
+
+  <div class="card">
+    <p style="font-size:13.5px;color:var(--ink-soft);background:var(--bg);padding:12px 14px;border-radius:8px;margin-bottom:16px">
+      Browsers block a page from opening many tabs at once without a click per tab, so tap "Send" once for each
+      parent below — WhatsApp opens with everything pre-filled, you just hit send there.
+    </p>
+    <table>
+      <thead><tr><th>Student</th><th>Parent</th><th></th></tr></thead>
+      <tbody>
+        {% for item in links %}
+        <tr>
+          <td>{{ item.student.name }}</td>
+          <td>{{ item.student.parent_name or '—' }} &middot; +{{ item.student.parent_phone }}</td>
+          <td>
+            <a class="btn small wa-send" target="_blank" rel="noopener"
+               data-student-id="{{ item.student.id }}" data-category="custom"
+               data-message="{{ item.message }}"
+               href="{{ item.link }}">Send</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3"><p class="empty">No parent phone numbers on file for this class yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <a href="{{ url_for('teacher_message_parents', class_id=school_class.id) }}" class="btn secondary">Back to message parents</a>
+
+  <script>
+    document.querySelectorAll('.wa-send').forEach(function(el){
+      el.addEventListener('click', function(){
+        fetch("{{ url_for('teacher_message_parents_log') }}", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            student_id: el.dataset.studentId,
+            category: el.dataset.category,
+            message: el.dataset.message
+          })
+        }).catch(function(){});
+      });
+    });
+  </script>
+{% endblock %}

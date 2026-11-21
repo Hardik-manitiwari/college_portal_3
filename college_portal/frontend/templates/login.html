@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — ITM Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-side">
+      <div class="brand"><span class="mark">I</span>ITM Portal</div>
+
+      <div class="pitch">
+        <h2>Attendance and coursework, without the hassle.</h2>
+        <p>One place for students to scan in, check homework, and track attendance — and for
+           teachers to run a session, manage their class, and keep parents in the loop.</p>
+
+        <div class="roles">
+          <div class="role"><span class="dot"></span>Students scan a QR to mark themselves present</div>
+          <div class="role"><span class="dot"></span>Teachers generate QRs and manage their classes</div>
+          <div class="role"><span class="dot"></span>WhatsApp alerts to parents for attendance & homework</div>
+        </div>
+      </div>
+
+      <div class="foot">Institute of Technology &amp; Management, GIDA, Gorakhpur</div>
+    </div>
+
+    <div class="login-form-wrap">
+      <div class="login-card">
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in with your college email, roll number, or employee ID.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+          <div class="form-row">
+            <label for="identifier">Email / Roll number / Employee ID</label>
+            <input type="text" id="identifier" name="identifier" required autofocus>
+          </div>
+          <div class="form-row">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn" style="width:100%; justify-content:center">Sign in</button>
+        </form>
+
+        <div class="login-hint">
+          <strong>Demo accounts</strong><br>
+          Admin — admin@college.edu / admin123<br>
+          Teacher — meera.rao@college.edu / teach123<br>
+          Student — CS2A001 / student123
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

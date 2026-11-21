@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Users — Admin{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('admin_dashboard') }}">Overview</a>
+  <a href="{{ url_for('admin_users') }}" class="active">Users</a>
+  <a href="{{ url_for('admin_classes') }}">Classes</a>
+  <a href="{{ url_for('admin_reports') }}">Reports</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Users</h1>
+  <p class="subtitle">Every account on the portal.</p>
+
+  <div class="tag-strip">
+    <a href="{{ url_for('admin_users', role='all') }}" class="{{ 'active' if role_filter == 'all' }}">All</a>
+    <a href="{{ url_for('admin_users', role='student') }}" class="{{ 'active' if role_filter == 'student' }}">Students</a>
+    <a href="{{ url_for('admin_users', role='teacher') }}" class="{{ 'active' if role_filter == 'teacher' }}">Teachers</a>
+    <a href="{{ url_for('admin_users', role='admin') }}" class="{{ 'active' if role_filter == 'admin' }}">Admins</a>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>ID</th><th>Email</th><th>Class</th><th></th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.name }}</td>
+          <td><span class="pill neutral">{{ u.role }}</span></td>
+          <td>{{ u.roll_number or u.employee_id or '—' }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.student_class.name if u.student_class else '—' }}</td>
+          <td>
+            {% if u.role != 'admin' %}
+            <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                  onsubmit="return confirm('Remove {{ u.name }}? This cannot be undone.');">
+              <button type="submit" class="btn small danger">Delete</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

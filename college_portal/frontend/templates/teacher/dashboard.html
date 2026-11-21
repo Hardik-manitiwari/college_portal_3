@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('teacher_dashboard') }}" class="active">Dashboard</a>
+  <a href="{{ url_for('teacher_generate_qr') }}">Generate QR</a>
+  <a href="{{ url_for('teacher_failsafe') }}">Failsafe scan</a>
+  <a href="{{ url_for('teacher_homework') }}">Homework</a>
+  <a href="{{ url_for('teacher_message_parents') }}">Message parents</a>
+{% endblock %}
+
+{% block content %}
+  <h1>Welcome, {{ user.name.split(' ')[0] }}</h1>
+  <p class="subtitle">Your classes and subjects at a glance.</p>
+
+  {% if coordinated %}
+  <div class="card">
+    <h2>Classes you coordinate</h2>
+    <table>
+      <thead><tr><th>Class</th><th>Students</th><th></th></tr></thead>
+      <tbody>
+        {% for c in coordinated %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.students|length }}</td>
+          <td>
+            <a href="{{ url_for('teacher_class_report', class_id=c.id) }}">View report</a>
+            &nbsp;&middot;&nbsp;
+            <a href="{{ url_for('teacher_students', class_id=c.id) }}">Manage students</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Subjects you teach</h2>
+    {% if taught_subjects %}
+      <table>
+        <thead><tr><th>Subject</th><th>Class</th><th></th></tr></thead>
+        <tbody>
+          {% for s in taught_subjects %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.school_class.name }}</td>
+            <td>
+              <a href="{{ url_for('teacher_generate_qr') }}">Take attendance</a>
+              &nbsp;&middot;&nbsp;
+              <a href="{{ url_for('teacher_homework') }}">Post homework</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No subjects assigned yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

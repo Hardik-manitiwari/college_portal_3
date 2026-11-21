@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ITM GIDA, Gorakhpur{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="mark">I</span>ITM <span class="tag">Portal</span></div>
+    {% if session.get('user_id') %}
+    <div class="who">
+      <div class="meta">
+        <div class="name">{{ session.get('name') }}</div>
+        <div class="role">{{ session.get('role') }}</div>
+      </div>
+      <div class="avatar">{{ session.get('name', '?')[:1] }}{{ session.get('name', ' ?').split(' ')[-1][:1] }}</div>
+      <a href="{{ url_for('logout') }}">Log out</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="shell">
+    {% if session.get('user_id') %}
+    <div class="sidenav">
+      {% block nav %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <div class="main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</body>
+</html>

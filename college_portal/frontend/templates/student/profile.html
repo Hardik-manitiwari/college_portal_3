@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My profile — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('student_homework') }}">Homework</a>
+  <a href="{{ url_for('student_attendance') }}">Attendance</a>
+  <a href="{{ url_for('student_scan') }}">Scan attendance</a>
+  <a href="{{ url_for('student_profile') }}" class="active">My ID / profile</a>
+{% endblock %}
+
+{% block content %}
+  <h1>My profile</h1>
+  <p class="subtitle">This QR code is your student ID — it's the failsafe when your device can't scan.</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>Details</h2>
+      <table>
+        <tr><td style="color:var(--ink-soft)">Name</td><td>{{ user.name }}</td></tr>
+        <tr><td style="color:var(--ink-soft)">Roll number</td><td>{{ user.roll_number }}</td></tr>
+        <tr><td style="color:var(--ink-soft)">Email</td><td>{{ user.email }}</td></tr>
+        <tr><td style="color:var(--ink-soft)">Class</td><td>{{ user.student_class.name }}</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Your ID QR (failsafe)</h2>
+      <div class="qr-box">
+        <img src="{{ qr_image }}" alt="Your student ID QR code">
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin-top:12px">
+        If your camera or the classroom QR won't scan, show this screen to your teacher — they can scan it directly to
+        mark you present for the current session. Keep a screenshot handy in case you're offline.
+      </p>
+    </div>
+  </div>
+{% endblock %}

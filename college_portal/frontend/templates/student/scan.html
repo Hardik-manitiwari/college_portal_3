@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Scan attendance — ITM Portal{% endblock %}
+
+{% block nav %}
+  <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('student_homework') }}">Homework</a>
+  <a href="{{ url_for('student_attendance') }}">Attendance</a>
+  <a href="{{ url_for('student_scan') }}" class="active">Scan attendance</a>
+  <a href="{{ url_for('student_profile') }}">My ID / profile</a>
+{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <h1>Scan attendance</h1>
+  <p class="subtitle">Point your camera at the QR code your teacher is showing.</p>
+
+  <div class="card" style="max-width: 420px">
+    <div id="scanner-region"></div>
+    <div id="result" class="scan-result"></div>
+    <div style="margin-top:14px;text-align:center">
+      <button class="btn secondary small" onclick="restart()">Restart camera</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin-top:14px">
+      Camera not working, or the QR won't scan? Open your <a href="{{ url_for('student_profile') }}">profile</a> and ask your
+      teacher to scan your ID QR instead — that's the failsafe built for exactly this.
+    </p>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+  <script>
+    const resultEl = document.getElementById('result');
+
+    function showResult(ok, message) {
+      resultEl.textContent = message;
+      resultEl.className = 'scan-result show ' + (ok ? 'ok' : 'err');
+    }
+
+    function onDecoded(text) {
+      fetch("{{ url_for('student_scan_submit') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: text })
+      })
+      .then(r => r.json())
+      .then(data => showResult(data.ok, data.message))
+      .catch(() => showResult(false, "Couldn't reach the server. Check your connection and try again."));
+    }
+
+    function restart() {
+      stopScanner();
+      setTimeout(() => startScanner('scanner-region', onDecoded, (err) => showResult(false, err)), 300);
+    }
+
+    startScanner('scanner-region', onDecoded, (err) => showResult(false, err));
+  </script>
+{% endblock %}
