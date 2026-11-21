@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "college-portal",
+  "main": "worker.py",
+  "compatibility_date": "2026-11-21",
+  "compatibility_flags": ["python_workers"],
+  "assets": {
+    "directory": "../frontend"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "college-portal-db",
+      "database_id": "<create-with-wrangler-and-paste-the-id>"
+    }
+  ]
+}
